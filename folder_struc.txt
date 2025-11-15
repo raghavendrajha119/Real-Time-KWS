@@ -1,0 +1,24 @@
+.
+├── cnn.h5
+├── folder_struc.txt
+├── graphs_gen.py
+├── KWS_waves
+│   ├── 1_waveform.png
+│   ├── 2_spectrogram_linear.png
+│   ├── 3_mel_spectrogram.png
+│   ├── 4_mfcc.png
+│   ├── par_timeline.png
+│   └── seq_timeline.png
+├── labels.txt
+├── microphone_1763227531840_8.wav
+├── microphone_old.py
+├── microphone_parallel.py
+├── microphone.py
+├── microphone.wav
+├── README.md
+├── requirements.txt
+└── Time_data
+    ├── events_par.csv
+    └── events_seq.csv
+
+3 directories, 19 files

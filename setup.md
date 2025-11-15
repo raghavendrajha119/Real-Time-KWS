@@ -4,7 +4,7 @@ This repository contains a small real-time Keyword Spotting (KWS) demo and tooli
 
 * `microphone.py` — **Sequential** capture → process → predict loop (1s chunks).
 * `microphone_parallel.py` — **Parallel** recorder + inference using threads with a live **Rich** dashboard.
-* `plot_timeline.py` (aka `graphs_gen.py`) — generate timing visualizations from CSV logs to compare sequential vs parallel behavior.
+* `graphs_gen.py` (aka `graphs_gen.py`) — generate timing visualizations from CSV logs to compare sequential vs parallel behavior.
 * `Time_data/` — CSV logs for sequential and parallel runs (created automatically).
 * `KWS_waves/` — where timeline plots are saved (you can change this).
 * `requirements.txt` — Python dependencies.
@@ -121,28 +121,28 @@ python microphone_parallel.py --keras_file_path cnn.h5 --labels labels.txt
 
 ## Generate timing plots (graphs)
 
-Use `plot_timeline.py` (or `graphs_gen.py`) to visualize CSV records and produce timeline PNGs. The script visually shows recording intervals (blue), inference intervals (orange) and queue moments (vertical `Q`).
+Use `graphs_gen.py` to visualize CSV records and produce timeline PNGs. The script visually shows recording intervals (blue), inference intervals (orange) and queue moments (vertical `Q`).
 
 **Example usage**
 
 1. Sequential plot:
 
    ```bash
-   python plot_timeline.py seq Time_data/events_seq.csv KWS_waves/seq_timeline.png
+   python graphs_gen.py seq Time_data/events_seq.csv KWS_waves/seq_timeline.png
    ```
 
 2. Parallel plot:
 
    ```bash
-   python plot_timeline.py par Time_data/events_par.csv KWS_waves/par_timeline.png
+   python graphs_gen.py par Time_data/events_par.csv KWS_waves/par_timeline.png
    ```
 
 3. Quick helper (create `KWS_waves/` and generate both if you have both CSVs):
 
    ```bash
    mkdir -p KWS_waves
-   python plot_timeline.py seq Time_data/events_seq.csv KWS_waves/seq_timeline.png
-   python plot_timeline.py par Time_data/events_par.csv KWS_waves/par_timeline.png
+   python graphs_gen.py seq Time_data/events_seq.csv KWS_waves/seq_timeline.png
+   python graphs_gen.py par Time_data/events_par.csv KWS_waves/par_timeline.png
    ```
 
 **What you’ll see**
@@ -168,7 +168,7 @@ Use `plot_timeline.py` (or `graphs_gen.py`) to visualize CSV records and produce
 .
 ├── microphone.py                 # sequential script
 ├── microphone_parallel.py        # parallel script + rich dashboard
-├── plot_timeline.py              # graphs generator
+├── graphs_gen.py              # graphs generator
 ├── requirements.txt
 ├── cnn.h5                        # trained model
 ├── labels.txt
@@ -204,89 +204,3 @@ pip install -r requirements.txt
 *Note*: TensorFlow may print GPU driver warnings if you do not have CUDA/TensorRT installed — this is normal and nonfatal.
 
 ---
-
-## Troubleshooting & tuning tips
-
-* **No audio or silent predictions**:
-
-  * Check microphone device. List devices: `python -m sounddevice`.
-  * Try increasing `duration` or lowering `silence` thresholds (if you added VAD).
-  * Ensure the model expects the exact MFCC flattening shape you provide.
-
-* **Model errors when running parallel**:
-
-  * Some Keras models are not thread-safe for concurrent `predict()` calls. The code uses `MODEL_LOCK` to serialize `predict()` calls (one at a time). If you still see issues, load the model in the inference thread only (the provided parallel code does that).
-
-* **Queue backlog / slow inference**:
-
-  * Decrease chunk `duration` to reduce chunk size but note this raises CPU load.
-  * Increase `CHUNK_QUEUE` size (in the parallel variant) to tolerate short bursts.
-  * Optimize model (smaller model, TF Lite, or CPU optimizations).
-
-* **CSV missing / no times**:
-
-  * Check the `Time_data/` folder; permissions; ensure process can create files.
-  * If timestamps are empty, ensure `time.time()` was captured and written before exceptions.
-
-* **Plots do not show**:
-
-  * `plot_timeline.py` saves PNGs in `KWS_waves/` — ensure directory exists or create it.
-
----
-
-## Example end-to-end workflow
-
-1. Run sequential and capture CSV:
-
-   ```bash
-   python microphone.py --keras_file_path cnn.h5 --labels labels.txt
-   # speak "on", "off", "stop" during run
-   ```
-
-2. Run parallel with dashboard:
-
-   ```bash
-   python microphone_parallel.py --keras_file_path cnn.h5 --labels labels.txt
-   # watch the live dashboard and speak words; stop with 'stop' or Ctrl+C
-   ```
-
-3. Generate comparison plots:
-
-   ```bash
-   mkdir -p KWS_waves
-   python plot_timeline.py seq Time_data/events_seq.csv KWS_waves/seq_timeline.png
-   python plot_timeline.py par Time_data/events_par.csv KWS_waves/par_timeline.png
-   ```
-
-4. Open the `KWS_waves/*.png` images to visually compare sequential vs parallel timing.
-
----
-
-## Interpreting results — short guide
-
-* **Sequential timeline**: Blue (record) → Orange (infer) for *each chunk* in sequence. Very little or no overlap; total time per chunk ≈ record + infer.
-* **Parallel timeline**: Blue bars for later chunks may overlap orange bars for earlier chunks → indicates concurrency. If orange bars mostly appear later than queued time, you have inference latency/backlog.
-* **Goal**: Reduce end-to-end latency (time from record_start to infer_end) and maximize overlap to improve throughput.
-
----
-
-## Next steps / Suggestions
-
-* Add timestamps to the final dashboard UI summary (so you can cross-reference CSV rows with dashboard entries).
-* Save per-chunk WAVs in an `archive/` folder for manual listening when debugging predictions.
-* Export timelines into an HTML report (matplotlib + Jinja2) to embed in documentation.
-* Try converting the model to TF-Lite for faster on-CPU inference.
-
----
-
-## Contact / Credits
-
-This project uses TF audio ops and `sounddevice` for capture. The documentation and dashboard are intended to be educational and to help you compare sequential vs parallel designs for KWS.
-
-If you want, I can:
-
-* Draft a Medium article structure (Part 1: KWS math + MFCCs; Part 2: Parallelism & threading; Part 3: Dashboard + results) — ready to publish.
-* Provide a short script to convert `events_par.csv` and `events_seq.csv` into a combined latency comparison table (CSV).
-* Create an HTML report bundling the generated PNGs and CSV summary.
-
-Would you like me to prepare the Medium article outline now?

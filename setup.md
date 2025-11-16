@@ -4,7 +4,7 @@ This repository contains a small real-time Keyword Spotting (KWS) demo and tooli
 
 * `microphone.py` — **Sequential** capture → process → predict loop (1s chunks).
 * `microphone_parallel.py` — **Parallel** recorder + inference using threads with a live **Rich** dashboard.
-* `graphs_gen.py` (aka `graphs_gen.py`) — generate timing visualizations from CSV logs to compare sequential vs parallel behavior.
+* `graphs_gen.py` — generate timing visualizations from CSV logs to compare sequential vs parallel behavior.
 * `Time_data/` — CSV logs for sequential and parallel runs (created automatically).
 * `KWS_waves/` — where timeline plots are saved (you can change this).
 * `requirements.txt` — Python dependencies.
@@ -33,9 +33,9 @@ This markdown explains setup, how to run sequential and parallel modes, where to
 2. Create a Python virtual environment (recommended) and install dependencies:
 
    ```bash
-   python -m venv .venv
-   source .venv/bin/activate          # Linux / macOS
-   .venv\Scripts\activate             # Windows PowerShell
+   python3.10 -m venv env310         # Using 3.10 model compatible
+   source .env310/bin/activate          # Linux / macOS
+   .env310\Scripts\activate             # Windows PowerShell
 
    pip install -r requirements.txt
    ```

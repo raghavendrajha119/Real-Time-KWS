@@ -33,6 +33,9 @@ from rich import box
 import csv
 from datetime import datetime
 
+# ----Mapping with some window tasks----
+from actions import handle_keyword, keyword_state
+
 # --------- Globals ----------
 CHUNK_QUEUE = queue.Queue(maxsize=8)    # Shared buffer for recorded audio chunks
 STOP_FLAG = threading.Event()   # Signal to stop all threads
@@ -228,14 +231,14 @@ def inference_thread(keras_path, labels_path, sample_rate, window_size_ms, windo
                 chunk_status[chunk_name]["prediction"] = human_label
                 chunk_status[chunk_name]["score"] = f"{score:.3f}"
 
-            # Action Hooks
-            if human_label == "on":
-                print("\t+#@+#@+#@+       Welcome     +#@+#@+#@+")
-            elif human_label == "off":
-                print("\t+#@+#@+#@+      Thank you     +#@+#@+#@+")
-            elif human_label == "stop":
-                print("\t+#@+#@+#@+   have a Nice day   +#@+#@+#@+")
-                STOP_FLAG.set()
+            # ---- ACTION HOOKS with Cooldown + State ----
+            if human_label in ["on", "off", "stop"]:
+                output = handle_keyword(human_label)
+                if output:
+                    print(output)
+
+                if human_label == "stop":
+                    STOP_FLAG.set()
 
         except Exception as e:
             inf_end = time.time()

@@ -4,3 +4,6 @@ env310/
 # # Step files
 # KWS_waves/
 # Time_data/
+
+# music files
+*.wav
